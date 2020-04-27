@@ -1,3 +1,4 @@
 import userResolver from './user';
+import topicResolver from './topic';
 
-export default [userResolver];
+export default [userResolver, topicResolver];

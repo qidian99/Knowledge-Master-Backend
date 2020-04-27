@@ -16,7 +16,7 @@ import typeDefs from './graphql/schema';
 import resolvers from './graphql/resolvers';
 import cors from './middlewares/cors';
 import errorHandler from './middlewares/errorHandler';
-import { getUser } from './util';
+import { getUser, injectAdminUser, injectTopics } from './util';
 
 const url = process.env.MONGO_DEV_URL || 'localhost:4002';
 
@@ -126,6 +126,8 @@ const server = new ApolloServer({
 
       async serverWillStart(): Promise<void> {
         console.log('Server starting!');
+        await injectAdminUser();
+        await injectTopics();
       }
     }
   ]

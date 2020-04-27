@@ -1,11 +1,19 @@
 import { gql } from 'apollo-server-express';
 
 const typedef = gql`
-  scalar ObjectScalarType
   type User {
     userId: ID!
-    username: String!
+    username: String
     password: String
+    openid: String!
+    sessionKey: String
+    avatarUrl: String
+    city: String
+    country: String
+    gender: Int
+    language: String
+    nickName: String
+    province: String
   }
 
   type LoginResponse {
@@ -24,6 +32,16 @@ const typedef = gql`
     password: String!
   }
 
+  input ProfileInput {
+    avatarUrl: String
+    city: String
+    country: String
+    gender: Int
+    language: String
+    nickName: String
+    province: String
+  }
+
   type Response {
     message: String!
     data: ObjectScalarType!
@@ -37,6 +55,8 @@ const typedef = gql`
   }
 
   extend type Mutation {
+    registerOpenid(code: String!): User!
+    updateUserProfile(openid: String!, profile: ProfileInput!): User!
     signup(input: SignupInput!): LoginResponse!
     login(input: UserInput!): LoginResponse!
     deleteAllNonAdmin: Int!

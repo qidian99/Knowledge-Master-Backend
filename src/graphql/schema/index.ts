@@ -1,7 +1,10 @@
 import { gql } from 'apollo-server-express';
 import userSchema from './user';
+import topicSchema from './topic';
 
 const rootSchema = gql`
+  scalar ObjectScalarType
+
   type Query {
     _: Boolean
   }
@@ -9,4 +12,4 @@ const rootSchema = gql`
     _: Boolean
   }
 `;
-export default [rootSchema, userSchema];
+export default [rootSchema, userSchema, topicSchema];

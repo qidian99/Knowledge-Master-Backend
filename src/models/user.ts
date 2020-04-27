@@ -5,10 +5,20 @@ import * as bcrypt from 'bcryptjs';
 import { UserDocument } from '../interfaces/UserDocument';
 
 const userSchema = new Schema({
-  email: { type: String, required: true },
-  password: { type: String, required: true },
-  username: { type: String, required: true },
-  roles: [{ type: String, required: true }]
+  email: { type: String, required: false },
+  password: { type: String, required: false },
+  username: { type: String, required: false },
+  roles: [{ type: String, required: false }],
+  sessionKey: { type: String, required: false },
+  openid: { type: String, required: true },
+  avatarUrl: { type: String, required: false },
+  city: { type: String, required: false },
+  country: { type: String, required: false },
+  gender: { type: Number, required: false },
+  language: { type: String, required: false },
+  nickName: { type: String, required: false },
+  province: { type: String, required: false },
+  subscription: { type: Schema.Types.ObjectId, ref: 'Topic', required: false }
 });
 
 export interface UserInterface extends UserDocument {
@@ -27,7 +37,9 @@ userSchema.method('comparePassword', function (
 });
 
 userSchema.static('hashPassword', (password: string): string => {
-  return bcrypt.hashSync(password);
+  const hashedPassword = bcrypt.hashSync(password);
+  // console.log(hashedPassword);
+  return hashedPassword;
 });
 
 export const User: UserModel = model<UserInterface, UserModel>(

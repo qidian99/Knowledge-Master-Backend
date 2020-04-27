@@ -6,4 +6,24 @@ export interface UserDocument extends Document {
   name: string;
   password: string;
   roles: Array<string>;
+  sessionKey: string;
+  openid: string;
+  avatarUrl: string;
+  city: string;
+  country: string;
+  gender: number;
+  language: string;
+  nickName: string;
+  province: string;
+  subscription: [string];
+}
+
+export interface ProfileInput {
+  avatarUrl: string;
+  city: string;
+  country: string;
+  gender: number;
+  language: string;
+  nickName: string;
+  province: string;
 }

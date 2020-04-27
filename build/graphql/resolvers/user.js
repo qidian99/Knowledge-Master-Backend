@@ -68,6 +68,37 @@ exports.default = {
                         message: 'Test GraphQL API for Wechat MP'
                     }];
             });
+        }); },
+        users: function (parent, args, context) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+            return [2 /*return*/, User.find({})];
+        }); }); }
+    },
+    Mutation: {
+        registerOpenid: function (parent, args, context) { return __awaiter(void 0, void 0, void 0, function () {
+            var sessionKey, openid, temp;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        sessionKey = args.sessionKey, openid = args.openid;
+                        return [4 /*yield*/, User.findOne({ openid: openid })];
+                    case 1:
+                        temp = _a.sent();
+                        if (!temp) return [3 /*break*/, 3];
+                        temp.sessionKey = sessionKey;
+                        return [4 /*yield*/, temp.save()];
+                    case 2:
+                        _a.sent();
+                        return [3 /*break*/, 5];
+                    case 3: return [4 /*yield*/, new User({
+                            openid: openid,
+                            sessionKey: sessionKey
+                        }).save()];
+                    case 4:
+                        temp = _a.sent();
+                        _a.label = 5;
+                    case 5: return [2 /*return*/, temp];
+                }
+            });
         }); }
     }
 };

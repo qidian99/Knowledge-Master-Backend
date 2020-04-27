@@ -11,10 +11,12 @@ var mongoose_1 = __importStar(require("mongoose"));
 var Schema = mongoose_1.default.Schema;
 var bcrypt = __importStar(require("bcryptjs"));
 var userSchema = new Schema({
-    email: { type: String, required: true },
-    password: { type: String, required: true },
-    username: { type: String, required: true },
-    roles: [{ type: String, required: true }]
+    email: { type: String, required: false },
+    password: { type: String, required: false },
+    username: { type: String, required: false },
+    roles: [{ type: String, required: false }],
+    sessionKey: { type: String, required: false },
+    openid: { type: String, required: true }
 });
 userSchema.method('comparePassword', function (password) {
     if (bcrypt.compareSync(password, this.password))

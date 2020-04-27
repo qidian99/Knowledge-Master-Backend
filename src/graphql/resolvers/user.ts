@@ -1,11 +1,13 @@
 require('dotenv').config();
-
+import fetch, { Headers, RequestInit } from 'node-fetch';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import { ObjectScalarType } from '../schema/ObjectScalarType';
-
+import { User, UserInterface, UserModel } from '../../models/user';
+import { ProfileInput } from '../../interfaces/UserDocument';
+import { ApolloError } from 'apollo-server-errors';
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -13,8 +15,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.NODEMAILER_PASS
   }
 });
-
-const User = mongoose.model('User');
 
 export default {
   ObjectScalarType,
@@ -29,6 +29,74 @@ export default {
         },
         message: 'Test GraphQL API for Wechat MP'
       };
+    },
+    users: async (parent: any, args: any, context: any): Promise<any> =>
+      User.find({})
+  },
+  Mutation: {
+    registerOpenid: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
+      const { code } = args;
+
+      const myHeaders = new Headers();
+      myHeaders.append('Accept', 'application/json');
+
+      const requestOptions: RequestInit = {
+        method: 'GET',
+        headers: myHeaders,
+        redirect: 'follow'
+      };
+
+      const appid = process.env.APP_ID;
+      const appSecret = process.env.APP_SECRET;
+
+      if (!appid || !appSecret || !code)
+        throw new ApolloError('Invalid register code input', '422');
+
+      const res = await fetch(
+        `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`,
+        requestOptions
+      );
+
+      const data = await res.json();
+
+      console.log('WXAPI returns:', data);
+
+      const { session_key: sessionKey, openid } = data;
+      // try to find the openid first
+      let temp = await User.findOne({ openid });
+      if (temp) {
+        temp.sessionKey = sessionKey;
+        await temp.save();
+      } else {
+        temp = await new User({
+          openid,
+          sessionKey
+        }).save();
+      }
+      return temp;
+    },
+    updateUserProfile: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
+      const { openid, profile } = args;
+      // try to find the openid first
+      const temp = await User.findOne({ openid });
+      if (temp !== null) {
+        const keys = Object.keys(profile) as (keyof ProfileInput)[];
+        keys.forEach((key) => {
+          (temp[key] as string | number) = profile[key];
+        });
+        await temp.save();
+      } else {
+        return null;
+      }
+      return temp;
     }
   }
 };
