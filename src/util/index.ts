@@ -31,15 +31,20 @@ export async function injectAdminUser(): Promise<void> {
 
 const TOPIC_LIST = ['游戏', '生活', '学习', '动漫', '电影'];
 export async function injectTopics(): Promise<void> {
-  await Topic.deleteMany({
+  const topics = await Topic.find({
     name: {
       $in: TOPIC_LIST
     }
   });
+  const foundedTopics = topics.map(topic => topic.name);
+
+  console.log(foundedTopics)
   await Promise.all(
     TOPIC_LIST.map(async (name) => {
-      const topic = await new Topic({ name }).save();
-      console.log('New topic created:', topic);
+      if (foundedTopics.findIndex((v) => v === name) == -1) {
+        const topic = await new Topic({ name }).save();
+        console.log('New topic created:', topic);
+      }
     })
   );
 }

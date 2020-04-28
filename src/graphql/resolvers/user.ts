@@ -88,7 +88,7 @@ export default {
         }
 
         // encrpyt openid using bcrypt
-        const token = jwt.sign(openid, process.env.JWT_SECRET || '');
+        const token = jwt.sign({ openid }, process.env.JWT_SECRET || '', { expiresIn: 31557600000000 });
 
         console.log('Encrypted token:', token);
         console.log('User: ',  {...temp._doc, token});

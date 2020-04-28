@@ -7,6 +7,7 @@ import { PostDocument } from '../interfaces/PostDocument';
 const postSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   topic: { type: Schema.Types.ObjectId, ref: 'Topic', required: true },
+  block: { type: String, required: true },
   title: { type: String, required: true },
   body: { type: String, required: true },
   likes: { type: Number, required: true },

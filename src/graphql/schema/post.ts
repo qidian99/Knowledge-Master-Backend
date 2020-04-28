@@ -5,6 +5,7 @@ const typedef = gql`
     postId: ID!
     user: User!
     topic: Topic!
+    block: String!
     title: String!
     body: String!
     likes: Int!
@@ -14,11 +15,11 @@ const typedef = gql`
   }
 
   extend type Query {
-    posts: [Post]
+    posts(topicId: ID): [Post]
   }
 
   extend type Mutation {
-    createPost(topicId: String!, title: String!, body: String!): Post
+    createPost(topicId: ID!, title: String!, body: String!): Post!
     deleteAllPosts: Int!
   }
 `;

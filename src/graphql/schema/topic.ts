@@ -9,6 +9,10 @@ const typedef = gql`
   extend type Query {
     topics: [Topic]
   }
+
+  extend type Mutation {
+    deleteAllTopics: Int!
+  }
 `;
 
 export default typedef;

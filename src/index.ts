@@ -66,17 +66,18 @@ const server = new ApolloServer({
     // console.log('Header JWT:', u)
     if (u) {
       const userObject = await User.findOne({
-        openid: u
+        openid: u.openid
       });
       if (userObject) {
         // console.log('Returned user context', userObject)
         return {
-          user: {
-            email: userObject.email,
-            id: userObject._id,
-            openid: userObject.openid,
-            roles: userObject.roles
-          }
+          user: userObject
+          // : {
+          //   email: userObject.email,
+          //   id: userObject._id,
+          //   openid: userObject.openid,
+          //   roles: userObject.roles
+          // }
         };
       }
       return {};

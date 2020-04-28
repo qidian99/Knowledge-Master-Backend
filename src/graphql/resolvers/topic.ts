@@ -14,5 +14,7 @@ export default {
       return Topic.find({});
     }
   },
-  Mutation: {}
+  Mutation: {
+    deleteAllTopics: async () => (await Topic.deleteMany({})).deletedCount
+  },
 };

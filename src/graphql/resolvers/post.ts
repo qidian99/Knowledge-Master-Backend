@@ -8,6 +8,17 @@ export default {
   },
   Query: {
     posts: async (parent: any, args: any, context: any): Promise<any> => {
+
+      const {
+        topicId
+      } = args;
+
+      if (topicId) {
+        console.log("Find posts by topic ID:", topicId)
+        const posts = await Post.find({ topic: topicId }).populate('user').populate('topic');
+        console.log(posts);
+        return posts;
+      }
       return Post.find({}).populate('user').populate('topic');
     }
   },
@@ -34,19 +45,19 @@ export default {
         throw new ApolloError("Topic ID not found", '422');
       }
 
-      console.log(args, user.id)
-
+      console.log(args, user._id)
+      
       const post = await new Post({
         topic,
-        user: user.id,
+        user,
         title,
         body,
+        block: 'default',
         hide: false,
         likes: 0
       }).save();
 
       console.log(post)
-
 
       return post;
     },
