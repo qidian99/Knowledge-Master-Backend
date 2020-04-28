@@ -11,7 +11,7 @@ import busboy from 'connect-busboy'; // middleware for form/file upload
 import { join } from 'path'; // used for file path
 import { createWriteStream } from 'fs-extra'; // File System - for file manipulation
 import './models'; // require before resolvers to register the schemas
-import { UserDocument } from './interfaces/UserDocument';
+import { User } from './models/user';
 import typeDefs from './graphql/schema';
 import resolvers from './graphql/resolvers';
 import cors from './middlewares/cors';
@@ -19,8 +19,6 @@ import errorHandler from './middlewares/errorHandler';
 import { getUser, injectAdminUser, injectTopics } from './util';
 
 const url = process.env.MONGO_DEV_URL || 'localhost:4002';
-
-const User = model<UserDocument>('User');
 
 const app = express();
 app.use(busboy());
@@ -59,21 +57,24 @@ const server = new ApolloServer({
   context: async ({
     req
   }): Promise<{
-    user?: { email: string; id: string; roles: Array<string> };
+    // user?: { email: string; id: string; roles: Array<string> };
+    user?: any
   }> => {
     const tokenWithBearer = req.headers.authorization || '';
     const token = tokenWithBearer.split(' ')[1];
     const u = getUser(token);
-    const roles = [];
-    if (u && u.email) {
+    // console.log('Header JWT:', u)
+    if (u) {
       const userObject = await User.findOne({
-        email: u.email
+        openid: u
       });
       if (userObject) {
+        // console.log('Returned user context', userObject)
         return {
           user: {
             email: userObject.email,
-            id: userObject.id,
+            id: userObject._id,
+            openid: userObject.openid,
             roles: userObject.roles
           }
         };
@@ -83,7 +84,7 @@ const server = new ApolloServer({
       return {};
     }
   },
-  formatError: (err): Error => {
+  formatError: (err): any => {
     console.log(err);
     return new Error(err.message);
   },

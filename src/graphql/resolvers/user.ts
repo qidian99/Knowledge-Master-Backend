@@ -8,6 +8,8 @@ import { ObjectScalarType } from '../schema/ObjectScalarType';
 import { User, UserInterface, UserModel } from '../../models/user';
 import { ProfileInput } from '../../interfaces/UserDocument';
 import { ApolloError } from 'apollo-server-errors';
+
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -34,50 +36,72 @@ export default {
       User.find({})
   },
   Mutation: {
+    deleteAllNonAdmin: async () => {
+      const delRes = await User.deleteMany({ "roles": { "$nin": ['admin'] }})
+      return delRes.deletedCount;
+    },
     registerOpenid: async (
       parent: any,
       args: any,
       context: any
     ): Promise<any> => {
-      const { code } = args;
+      try {
+        const { code } = args;
 
-      const myHeaders = new Headers();
-      myHeaders.append('Accept', 'application/json');
+        const myHeaders = new Headers();
+        myHeaders.append('Accept', 'application/json');
 
-      const requestOptions: RequestInit = {
-        method: 'GET',
-        headers: myHeaders,
-        redirect: 'follow'
-      };
+        const requestOptions: RequestInit = {
+          method: 'GET',
+          headers: myHeaders,
+          redirect: 'follow'
+        };
 
-      const appid = process.env.APP_ID;
-      const appSecret = process.env.APP_SECRET;
+        const appid = process.env.APP_ID;
+        const appSecret = process.env.APP_SECRET;
 
-      if (!appid || !appSecret || !code)
-        throw new ApolloError('Invalid register code input', '422');
+        if (!appid || !appSecret || !code)
+          throw new ApolloError('Invalid register code input', '422');
 
-      const res = await fetch(
-        `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`,
-        requestOptions
-      );
+        const res = await fetch(
+          `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${appSecret}&js_code=${code}&grant_type=authorization_code`,
+          requestOptions
+        );
 
-      const data = await res.json();
+        const data = await res.json();
 
-      console.log('WXAPI returns:', data);
+        console.log('WXAPI returns:', data);
 
-      const { session_key: sessionKey, openid } = data;
-      // try to find the openid first
-      let temp = await User.findOne({ openid });
-      if (temp) {
-        temp.sessionKey = sessionKey;
-        await temp.save();
-      } else {
-        temp = await new User({
-          openid,
-          sessionKey
-        }).save();
+        const { session_key: sessionKey, openid } = data;
+
+        if (!openid) throw new ApolloError("Invalid code.")
+        // try to find the openid first
+        let temp = await User.findOne({ openid });
+        if (temp) {
+          temp.sessionKey = sessionKey;
+          await temp.save();
+        } else {
+          temp = await new User({
+            openid,
+            sessionKey
+          }).save();
+        }
+
+        // encrpyt openid using bcrypt
+        const token = jwt.sign(openid, process.env.JWT_SECRET || '');
+
+        console.log('Encrypted token:', token);
+        console.log('User: ',  {...temp._doc, token});
+        
+        // return temp
+        return {
+          user: temp,
+          token
+        }
+        // return {...temp._doc, token};
+      } catch (err) {
+        console.log(err)
       }
-      return temp;
     },
     updateUserProfile: async (
       parent: any,

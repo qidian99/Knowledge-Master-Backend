@@ -10,5 +10,5 @@ const topicSchema = new Schema({
 
 export type TopicInterface = TopicDocument;
 export type TopicModel = Model<TopicDocument>;
-
-export default model<TopicInterface, TopicModel>('Topic', topicSchema);
+export const Topic = model<TopicInterface, TopicModel>('Topic', topicSchema);
+export default Topic

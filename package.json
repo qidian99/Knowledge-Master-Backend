@@ -26,7 +26,6 @@
   "homepage": "https://github.com/qidian99/core_platform#readme",
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
-    "@types/bcrypt": "^3.0.0",
     "@types/bcryptjs": "^2.4.2",
     "@types/body-parser": "^1.19.0",
     "@types/cors": "^2.8.6",
@@ -71,7 +70,6 @@
     "apollo-server-errors": "^2.3.4",
     "apollo-server-express": "^2.9.15",
     "aws-sdk": "^2.658.0",
-    "bcrypt": "^4.0.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",

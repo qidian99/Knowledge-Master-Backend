@@ -22,6 +22,7 @@ const userSchema = new Schema({
 });
 
 export interface UserInterface extends UserDocument {
+  _doc: any;
   comparePassword(password: string): boolean;
 }
 

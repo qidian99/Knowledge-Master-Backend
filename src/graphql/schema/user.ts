@@ -1,19 +1,30 @@
 import { gql } from 'apollo-server-express';
+import { User } from '../../models/user';
+
+const UserParts = `
+userId: ID!
+username: String
+password: String
+openid: String!
+sessionKey: String
+avatarUrl: String
+city: String
+country: String
+gender: Int
+language: String
+nickName: String
+province: String
+subscription: ID
+`
 
 const typedef = gql`
   type User {
-    userId: ID!
-    username: String
-    password: String
-    openid: String!
-    sessionKey: String
-    avatarUrl: String
-    city: String
-    country: String
-    gender: Int
-    language: String
-    nickName: String
-    province: String
+    ${UserParts}
+  }
+
+  type RegisterResponse {
+    ${UserParts}
+    token: String
   }
 
   type LoginResponse {
@@ -55,7 +66,7 @@ const typedef = gql`
   }
 
   extend type Mutation {
-    registerOpenid(code: String!): User!
+    registerOpenid(code: String!): LoginResponse!
     updateUserProfile(openid: String!, profile: ProfileInput!): User!
     signup(input: SignupInput!): LoginResponse!
     login(input: UserInput!): LoginResponse!
