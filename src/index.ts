@@ -60,10 +60,23 @@ const server = new ApolloServer({
     // user?: { email: string; id: string; roles: Array<string> };
     user?: any;
   }> => {
+    // console.log('Header JWT:', req.headers.authorizationoken);
     const tokenWithBearer = req.headers.authorization || '';
-    const token = tokenWithBearer.split(' ')[1];
+    const splittedToken = tokenWithBearer.split(' ');
+    // console.log('Header JWT:', splittedToken);
+    if (splittedToken.length <= 1) {
+      return {
+        user: null
+      };
+    }
+    const token = splittedToken[1];
     const u = getUser(token);
-    // console.log('Header JWT:', u.openid);
+
+    if (!u) {
+      return {
+        user: null
+      };
+    }
     if (u) {
       const userObject = await User.findOne({
         openid: u.openid
@@ -82,10 +95,13 @@ const server = new ApolloServer({
           // }
         };
       }
-      return {};
-    } else {
-      return {};
+      return {
+        user: null
+      };
     }
+    return {
+      user: null
+    };
   },
   formatError: (err): any => {
     console.log(err);

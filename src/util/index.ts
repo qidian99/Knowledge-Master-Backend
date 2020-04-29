@@ -20,13 +20,18 @@ export async function injectAdminUser(): Promise<void> {
   const username = process.env.ADMIN_USERNAME;
   const password = process.env.ADMIN_PASSWORD;
   const roles = ['admin'];
-  let admin = await User.findOne({ username });
+  let admin = await User.findOne({ email: username });
   if (admin) {
     admin.password = User.hashPassword(password);
     admin.roles = roles;
     await admin.save();
   } else {
-    admin = await new User({ username, password, openid: '-1', roles }).save();
+    admin = await new User({
+      email: username,
+      password,
+      openid: '-1',
+      roles
+    }).save();
   }
 }
 

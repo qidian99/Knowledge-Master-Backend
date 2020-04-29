@@ -74,7 +74,7 @@ export default {
       args: any,
       context: any
     ): Promise<any> => {
-      const user = checkUserContext(context);
+      // const user = checkUserContext(context);
       const { postId } = args;
       if (!postId) {
         const delRes = await Comment.deleteMany({});

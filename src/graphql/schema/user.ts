@@ -4,6 +4,7 @@ import { User } from '../../models/user';
 const UserParts = `
 userId: ID!
 username: String
+email: String
 password: String
 openid: String!
 sessionKey: String

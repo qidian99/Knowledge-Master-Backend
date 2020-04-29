@@ -182,6 +182,29 @@ export default {
         await temp.save();
       }
       return temp;
+    },
+    login: async (parent: any, args: any, context: any): Promise<any> => {
+      const {
+        input: { email, password }
+      } = args;
+      const user = await User.findOne({
+        email
+      }).populate('subscription');
+      // console.log(user);
+      if (user?.comparePassword(password)) {
+        const token = jwt.sign(
+          { openid: -1, userId: user._id, email },
+          process.env.JWT_SECRET || '',
+          {
+            expiresIn: 31557600000000
+          }
+        );
+        return {
+          token,
+          user
+        };
+      }
+      return null;
     }
   }
 };
