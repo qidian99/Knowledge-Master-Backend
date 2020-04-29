@@ -28,7 +28,7 @@ export async function injectAdminUser(): Promise<void> {
   } else {
     admin = await new User({
       email: username,
-      password,
+      password: User.hashPassword(password),
       openid: '-1',
       roles
     }).save();
