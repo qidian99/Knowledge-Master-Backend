@@ -8,7 +8,7 @@ import { ObjectScalarType } from '../schema/ObjectScalarType';
 import { User, UserInterface, UserModel } from '../../models/user';
 import { ProfileInput } from '../../interfaces/UserDocument';
 import { ApolloError } from 'apollo-server-errors';
-
+import Topic from '../../models/topic';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -33,11 +33,11 @@ export default {
       };
     },
     users: async (parent: any, args: any, context: any): Promise<any> =>
-      User.find({})
+      User.find({}).populate('subscription')
   },
   Mutation: {
     deleteAllNonAdmin: async () => {
-      const delRes = await User.deleteMany({ "roles": { "$nin": ['admin'] }})
+      const delRes = await User.deleteMany({ roles: { $nin: ['admin'] } });
       return delRes.deletedCount;
     },
     registerOpenid: async (
@@ -74,9 +74,9 @@ export default {
 
         const { session_key: sessionKey, openid } = data;
 
-        if (!openid) throw new ApolloError("Invalid code.")
+        if (!openid) throw new ApolloError('Invalid code.');
         // try to find the openid first
-        let temp = await User.findOne({ openid });
+        let temp = await User.findOne({ openid }).populate('subscription');
         if (temp) {
           temp.sessionKey = sessionKey;
           await temp.save();
@@ -88,19 +88,21 @@ export default {
         }
 
         // encrpyt openid using bcrypt
-        const token = jwt.sign({ openid }, process.env.JWT_SECRET || '', { expiresIn: 31557600000000 });
+        const token = jwt.sign({ openid }, process.env.JWT_SECRET || '', {
+          expiresIn: 31557600000000
+        });
 
         console.log('Encrypted token:', token);
-        console.log('User: ',  {...temp._doc, token});
-        
+        console.log('User: ', { ...temp._doc, token });
+
         // return temp
         return {
           user: temp,
           token
-        }
+        };
         // return {...temp._doc, token};
       } catch (err) {
-        console.log(err)
+        console.log(err);
       }
     },
     updateUserProfile: async (
@@ -108,25 +110,76 @@ export default {
       args: any,
       context: any
     ): Promise<any> => {
-      console.log('Updating user profile:', context, args)
-
-      const { 
-        user: {
-          openid
-        }
+      const {
+        user: { openid }
       } = context;
-      // try to find the openid first
-      const temp = await User.findOne({ openid });
 
-      console.log('Updating user profile:', temp)
+      console.log('Updating user profile:', openid, args);
+
+      // try to find the openid first
+      const temp = await User.findOne({ openid }).populate('subscription');
+
+      console.log('Updating user profile:', temp, temp?.openid, args);
       if (temp !== null) {
         const keys = Object.keys(args) as (keyof ProfileInput)[];
         keys.forEach((key) => {
+          console.log('updating', key);
           (temp[key] as string | number) = args[key];
         });
         await temp.save();
       } else {
         return null;
+      }
+      return temp;
+    },
+    setUsername: async (parent: any, args: any, context: any): Promise<any> => {
+      console.log('Updating username:', context, args);
+
+      const {
+        user: { openid }
+      } = context;
+      const { username } = args;
+      // try to find the openid first
+      const temp = await User.findOne({ openid }).populate('subscription');
+
+      console.log('Updating username:', temp);
+      if (temp !== null) {
+        temp.username = username;
+        await temp.save();
+      } else {
+        return null;
+      }
+      return temp;
+    },
+    subscribeToTopic: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
+      console.log('subscribing to topic:', context, args);
+
+      const {
+        user: { openid }
+      } = context;
+      const { topicId } = args;
+      // try to find the openid first
+      const temp = await User.findOne({ openid }).populate('subscription');
+      if (!temp) {
+        console.log('[subscribeToTopic] no user found');
+        return null;
+      }
+
+      // find topic
+      const topic = await Topic.findById(topicId);
+      if (!topic) {
+        console.log('[subscribeToTopic] no topic found');
+        return null;
+      }
+
+      if (temp !== null) {
+        temp.subscription = topic;
+        console.log('subscribed', temp.subscription);
+        await temp.save();
       }
       return temp;
     }

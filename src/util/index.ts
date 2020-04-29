@@ -19,7 +19,7 @@ export async function injectAdminUser(): Promise<void> {
   if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) return;
   const username = process.env.ADMIN_USERNAME;
   const password = process.env.ADMIN_PASSWORD;
-  const roles = ['admin'] 
+  const roles = ['admin'];
   let admin = await User.findOne({ username });
   if (admin) {
     admin.password = User.hashPassword(password);
@@ -37,9 +37,9 @@ export async function injectTopics(): Promise<void> {
       $in: TOPIC_LIST
     }
   });
-  const foundedTopics = topics.map(topic => topic.name);
+  const foundedTopics = topics.map((topic) => topic.name);
 
-  console.log(foundedTopics)
+  console.log(foundedTopics);
   await Promise.all(
     TOPIC_LIST.map(async (name) => {
       if (foundedTopics.findIndex((v) => v === name) == -1) {
@@ -50,14 +50,11 @@ export async function injectTopics(): Promise<void> {
   );
 }
 
-
 export function checkUserContext(context: any): any {
-  const {
-    user
-  } = context
+  const { user } = context;
   if (!user) {
-    console.log("You are not authorized to create a post")
-    throw new ApolloError("You are not authorized to create a post", '401');
+    console.log('You are not authorized to create a post');
+    throw new ApolloError('You are not authorized to create a post', '401');
   }
   return user;
 }

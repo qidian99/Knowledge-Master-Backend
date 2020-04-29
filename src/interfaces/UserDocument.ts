@@ -15,7 +15,7 @@ export interface UserDocument extends Document {
   language: string;
   nickName: string;
   province: string;
-  subscription: [string];
+  subscription: any; // for assignment
 }
 
 export interface ProfileInput {

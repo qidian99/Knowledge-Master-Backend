@@ -10,13 +10,9 @@ export default {
   },
   Query: {
     posts: async (parent: any, args: any, context: any): Promise<any> => {
-
-      const {
-        topicId
-      } = args;
+      const { topicId } = args;
 
       if (topicId) {
-
         // const test = await Post.aggregate([
         //   { "$match": { "topic": new ObjectId(topicId) } },
         //   {
@@ -43,10 +39,10 @@ export default {
         //       as: "user"
         //     }
         //   },
-        //   { 
-        //     $project: { 
+        //   {
+        //     $project: {
         //       "block": 1,
-        //       "title": 1, 
+        //       "title": 1,
         //       "body": 1,
         //       "likes": 1,
         //       "hide": 1,
@@ -62,16 +58,30 @@ export default {
         // console.log('test', test[0].comments)
         // return test
 
-        console.log("Find posts by topic ID:", topicId)
-        const posts = await Post.find({ topic: topicId }, null, { sort: { createdAt: -1 } })
-          .populate('user')
+        console.log('Find posts by topic ID:', topicId);
+        const posts = await Post.find({ topic: topicId }, null, {
+          sort: { createdAt: -1 }
+        })
+          // .populate('user')
+          .populate({
+            path: 'user',
+            populate: {
+              path: 'subscription',
+              model: 'Topic'
+            }
+          })
           .populate('topic')
           .populate('likes')
           // .populate('comments')
           .populate({
-            path: 'comments', populate: {
+            path: 'comments',
+            populate: {
               path: 'user',
-              model: 'User'
+              model: 'User',
+              populate: {
+                path: 'subscription',
+                model: 'Topic'
+              }
             }
           });
         console.log(posts);
@@ -83,30 +93,24 @@ export default {
   },
   Mutation: {
     createPost: async (parent: any, args: any, context: any): Promise<any> => {
-      const {
-        user
-      } = context
+      const { user } = context;
       if (!user) {
-        console.log("You are not authorized to create a post")
-        throw new ApolloError("You are not authorized to create a post", '401');
+        console.log('You are not authorized to create a post');
+        throw new ApolloError('You are not authorized to create a post', '401');
       }
 
-      const {
-        topicId,
-        title,
-        body,
-      } = args;
+      const { topicId, title, body } = args;
 
       // console.log(args)
 
       // find topic
       const topic = await Topic.findById(topicId);
       if (!topic) {
-        console.log("Topic ID not found")
-        throw new ApolloError("Topic ID not found", '422');
+        console.log('Topic ID not found');
+        throw new ApolloError('Topic ID not found', '422');
       }
 
-      console.log(args, user._id)
+      console.log(args, user._id);
 
       const post = await new Post({
         topic,
@@ -119,7 +123,7 @@ export default {
         comments: []
       }).save();
 
-      console.log(post)
+      console.log(post);
 
       return post;
     },
@@ -128,30 +132,26 @@ export default {
       return deleteRes.deletedCount;
     },
     likeAPost: async (parent: any, args: any, context: any): Promise<any> => {
-      const {
-        user
-      } = context
+      const { user } = context;
       if (!user) {
-        console.log("You are not authorized to create a post")
-        throw new ApolloError("You are not authorized to create a post", '401');
+        console.log('You are not authorized to create a post');
+        throw new ApolloError('You are not authorized to create a post', '401');
       }
 
-      const {
-        postId
-      } = args;
+      const { postId } = args;
 
       const post = await Post.findById(postId);
 
       if (!post) {
-        console.log("Post does not exist")
-        throw new ApolloError("Post does not exist", '422');
+        console.log('Post does not exist');
+        throw new ApolloError('Post does not exist', '422');
       }
 
       const userId = user._id;
       console.log(post.likes, userId);
 
       const index = post.likes.findIndex((id) => {
-        return id.toString() == userId
+        return id.toString() == userId;
       });
       if (index !== -1) {
         post.likes.splice(index);

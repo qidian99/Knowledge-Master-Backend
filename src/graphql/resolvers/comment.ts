@@ -9,51 +9,55 @@ export default {
   },
   Query: {
     comments: async (parent: any, args: any, context: any): Promise<any> => {
-
-      const {
-        postId
-      } = args;
+      const { postId } = args;
       // console.log(args);
 
-
       if (!postId) {
-        console.log("Post ID is not provided");
-        throw new ApolloError("Post ID is not provided");
+        console.log('Post ID is not provided');
+        throw new ApolloError('Post ID is not provided');
       }
 
       // get the post
       const post = await Post.findById(postId);
       if (!post) {
-        console.log("Post cannot be found");
-        throw new ApolloError("Post cannot be found");
+        console.log('Post cannot be found');
+        throw new ApolloError('Post cannot be found');
       }
 
       // fetch all comments
-      const comments = await Comment.find({ post: postId }, null, { sort: { createdAt: -1 } }).populate('user').populate('topic').populate('post');
+      const comments = await Comment.find({ post: postId }, null, {
+        sort: { createdAt: -1 }
+      })
+        .populate('user')
+        .populate('topic')
+        .populate('post');
       // console.log(comments);
       return comments;
     }
   },
   Mutation: {
-    createComment: async (parent: any, args: any, context: any): Promise<any> => {
+    createComment: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
       const user = checkUserContext(context);
-      const {
-        postId,
-        body,
-      } = args;
+      const { postId, body } = args;
 
       // find post
-      const post = await Post.findById(postId).populate('topic').populate('user')
+      const post = await Post.findById(postId)
+        .populate('topic')
+        .populate('user');
       if (!post) {
-        console.log("Post not found")
-        throw new ApolloError("Post not found", '422');
+        console.log('Post not found');
+        throw new ApolloError('Post not found', '422');
       }
 
-      console.log('Creating a comment for post', post)
+      console.log('Creating a comment for post', post);
       const comment = await new Comment({
         post,
         user,
-        topic: post.topic, 
+        topic: post.topic,
         hide: false,
         block: 'default',
         body
@@ -61,19 +65,26 @@ export default {
 
       post.comments.unshift(comment._id);
       await post.save();
-      console.log('Created', comment)
+      console.log('Created', comment);
 
       return comment;
     },
-    deleteAllComments: async (parent: any, args: any, context: any) => {
+    deleteAllComments: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
       const user = checkUserContext(context);
-      const {
-        postId,
-      } = args;
+      const { postId } = args;
+      if (!postId) {
+        const delRes = await Comment.deleteMany({});
+        return delRes.deletedCount;
+        return;
+      }
       const delRes = await Comment.deleteMany({
         post: postId
       });
       return delRes.deletedCount;
-    },
+    }
   }
 };

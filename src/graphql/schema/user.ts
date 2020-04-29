@@ -14,7 +14,7 @@ gender: Int
 language: String
 nickName: String
 province: String
-subscription: ID
+subscription: Topic
 `
 
 const typedef = gql`
@@ -71,7 +71,10 @@ const typedef = gql`
     updateUserProfile(nickName: String!, province: String!, language: String!, gender: Int!, country: String!, city: String!, avatarUrl: String!): User!
     login(input: UserInput!): LoginResponse!
     deleteAllNonAdmin: Int!
+    setUsername(username: String!): User!
+    subscribeToTopic(topicId: ID!): User!
   }
+  
 `;
 
 export default typedef;

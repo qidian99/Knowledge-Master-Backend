@@ -58,17 +58,17 @@ const server = new ApolloServer({
     req
   }): Promise<{
     // user?: { email: string; id: string; roles: Array<string> };
-    user?: any
+    user?: any;
   }> => {
     const tokenWithBearer = req.headers.authorization || '';
     const token = tokenWithBearer.split(' ')[1];
     const u = getUser(token);
-    // console.log('Header JWT:', token)
+    // console.log('Header JWT:', u.openid);
     if (u) {
       const userObject = await User.findOne({
         openid: u.openid
-      });
-      // console.log('Header UserObject:', userObject)
+      }).populate('subscription');
+      // console.log('Header UserObject:', userObject);
 
       if (userObject) {
         // console.log('Returned user context', userObject)

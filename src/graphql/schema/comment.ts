@@ -20,7 +20,7 @@ const typedef = gql`
 
   extend type Mutation {
     createComment(postId: ID!, body: String!): Comment!
-    deleteAllComments(postId: ID!): Int!
+    deleteAllComments(postId: ID): Int!
   }
 `;
 
