@@ -1,6 +1,7 @@
 import { gql } from 'apollo-server-express';
 import { User } from '../../models/user';
 
+// userId _id
 const UserParts = `
 userId: ID!
 username: String
@@ -16,7 +17,7 @@ language: String
 nickName: String
 province: String
 subscription: Topic
-`
+`;
 
 const typedef = gql`
   type User {

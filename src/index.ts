@@ -71,20 +71,30 @@ const server = new ApolloServer({
     }
     const token = splittedToken[1];
     const u = getUser(token);
-
+    // console.log('returned jwt decode', u);
     if (!u) {
       return {
         user: null
       };
     }
     if (u) {
-      const userObject = await User.findOne({
-        openid: u.openid
-      }).populate('subscription');
-      // console.log('Header UserObject:', userObject);
+      let userObject;
+      if (u.email) {
+        userObject = await User.findOne()
+          .or([{ openid: u.openid }, { email: u.email }])
+          .populate('subscription');
+      } else {
+        userObject = await User.findOne({
+          openid: u.openid
+        }).populate('subscription');
+      }
+      // return many null
+      // const userObject = await User.find()
+      //   .or([{ openid: u.openid }, { email: u.email }])
+      //   .populate('subscription');
 
       if (userObject) {
-        // console.log('Returned user context', userObject)
+        // console.log('Returned user context', userObject);
         return {
           user: userObject
           // : {
