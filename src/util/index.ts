@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/user';
 import Topic from '../models/topic';
 import mongoose from 'mongoose';
+import { ApolloError } from 'apollo-server-errors';
 
 export function getUser(token: string): any {
   try {
@@ -47,4 +48,16 @@ export async function injectTopics(): Promise<void> {
       }
     })
   );
+}
+
+
+export function checkUserContext(context: any): any {
+  const {
+    user
+  } = context
+  if (!user) {
+    console.log("You are not authorized to create a post")
+    throw new ApolloError("You are not authorized to create a post", '401');
+  }
+  return user;
 }

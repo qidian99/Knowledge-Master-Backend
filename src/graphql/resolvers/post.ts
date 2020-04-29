@@ -1,6 +1,8 @@
 import Post from '../../models/post';
+import Comment from '../../models/post';
 import Topic from '../../models/topic';
 import { ApolloError } from 'apollo-server-errors';
+import { ObjectId } from 'mongodb';
 
 export default {
   Post: {
@@ -14,12 +16,59 @@ export default {
       } = args;
 
       if (topicId) {
-        console.log("Find posts by topic ID:", topicId)
-        const posts = await Post.find({ topic: topicId }, null, { sort: { createdAt: -1 } }).populate('user').populate('topic').populate('likes');
-        console.log(posts);
-        return posts;
+
+        const test = await Post.aggregate([
+          { "$match": { "topic": new ObjectId(topicId) } },
+          {
+            $lookup: {
+              from: "comments",
+              localField: "_id",
+              foreignField: "post",
+              as: "comments"
+            }
+          },
+          {
+            $lookup: {
+              from: "topics",
+              localField: "topic",
+              foreignField: "_id",
+              as: "topic"
+            }
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "user",
+              foreignField: "_id",
+              as: "user"
+            }
+          },
+          { 
+            $project: { 
+              "block": 1,
+              "title": 1, 
+              "body": 1,
+              "likes": 1,
+              "hide": 1,
+              "createdAt": 1,
+              "updatedAt": 1,
+              "comments": 1,
+              "topic": { "$arrayElemAt": [ "$topic", 0 ] },
+              "user": { "$arrayElemAt": [ "$user", 0 ] }
+            }
+          },
+          { $sort: { createdAt: -1 } }
+        ])
+        console.log('test', test)
+        return test
+
+        // console.log("Find posts by topic ID:", topicId)
+        // const posts = await Post.find({ topic: topicId }, null, { sort: { createdAt: -1 } }).populate('user').populate('topic').populate('likes').populate('comments');
+        // console.log(posts);
+        // return posts;
       }
-      return Post.find({}, null, { sort: { createdAt: -1 } }).populate('user').populate('topic').populate('likes');
+      // Must select a topic
+      // return Post.find({}, null, { sort: { createdAt: -1 } }).populate('user').populate('topic').populate('likes').populate('comments');
     }
   },
   Mutation: {
@@ -48,7 +97,7 @@ export default {
       }
 
       console.log(args, user._id)
-      
+
       const post = await new Post({
         topic,
         user,

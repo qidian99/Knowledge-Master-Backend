@@ -1,13 +1,13 @@
 import { Document } from 'mongoose';
 
-export interface PostDocument extends Document {
+export interface CommentDocument extends Document {
   // TODO: change to user document
   user: any;
   topic: any;
   block: string;
-  title: string;
+  post: string;
+  replyTo: string;
   body: string;
-  likes: Array<string>;
+  // likes: Array<string>;
   hide: Boolean;
-  comments: Array<string>;
 }

@@ -1,28 +1,26 @@
 import { gql } from 'apollo-server-express';
 
 const typedef = gql`
-  type Post {
-    postId: ID!
+  type Comment {
+    commentId: ID!
     user: User!
     topic: Topic!
     block: String!
-    title: String!
+    replyTo: Comment
+    post: Post!
     body: String!
-    likes: [User]!
     hide: Boolean!
-    comments: [Comment]!
     createdAt: String!
     updatedAt: String!
   }
 
   extend type Query {
-    posts(topicId: ID): [Post]
+    comments(postId: ID!): [Comment]
   }
 
   extend type Mutation {
-    createPost(topicId: ID!, title: String!, body: String!): Post!
-    deleteAllPosts: Int!
-    likeAPost(postId: ID!): [User]!
+    createComment(postId: ID!, body: String!): Comment!
+    deleteAllComments(postId: ID!): Int!
   }
 `;
 
