@@ -15,11 +15,11 @@ export default {
 
       if (topicId) {
         console.log("Find posts by topic ID:", topicId)
-        const posts = await Post.find({ topic: topicId }).populate('user').populate('topic');
+        const posts = await Post.find({ topic: topicId }, null, { sort: { createdAt: -1 } }).populate('user').populate('topic').populate('likes');
         console.log(posts);
         return posts;
       }
-      return Post.find({}).populate('user').populate('topic');
+      return Post.find({}, null, { sort: { createdAt: -1 } }).populate('user').populate('topic').populate('likes');
     }
   },
   Mutation: {
@@ -38,6 +38,8 @@ export default {
         body,
       } = args;
 
+      // console.log(args)
+
       // find topic
       const topic = await Topic.findById(topicId);
       if (!topic) {
@@ -54,7 +56,7 @@ export default {
         body,
         block: 'default',
         hide: false,
-        likes: 0
+        likes: []
       }).save();
 
       console.log(post)
@@ -64,6 +66,42 @@ export default {
     deleteAllPosts: async () => {
       const deleteRes = await Post.deleteMany({});
       return deleteRes.deletedCount;
+    },
+    likeAPost: async (parent: any, args: any, context: any): Promise<any> => {
+      const {
+        user
+      } = context
+      if (!user) {
+        console.log("You are not authorized to create a post")
+        throw new ApolloError("You are not authorized to create a post", '401');
+      }
+
+      const {
+        postId
+      } = args;
+
+      const post = await Post.findById(postId);
+
+      if (!post) {
+        console.log("Post does not exist")
+        throw new ApolloError("Post does not exist", '422');
+      }
+
+      const userId = user._id;
+      console.log(post.likes, userId);
+
+      const index = post.likes.findIndex((id) => {
+        return id.toString() == userId
+      });
+      if (index !== -1) {
+        post.likes.splice(index);
+      } else {
+        post.likes.unshift(userId);
+      }
+      await post.save();
+      console.log(post.likes);
+
+      return post.likes;
     }
   }
 };

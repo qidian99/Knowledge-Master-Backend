@@ -8,7 +8,7 @@ const typedef = gql`
     block: String!
     title: String!
     body: String!
-    likes: Int!
+    likes: [User]!
     hide: Boolean!
     createdAt: String!
     updatedAt: String!
@@ -21,6 +21,7 @@ const typedef = gql`
   extend type Mutation {
     createPost(topicId: ID!, title: String!, body: String!): Post!
     deleteAllPosts: Int!
+    likeAPost(postId: ID!): [User]!
   }
 `;
 

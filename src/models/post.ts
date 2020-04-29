@@ -10,7 +10,7 @@ const postSchema = new Schema({
   block: { type: String, required: true },
   title: { type: String, required: true },
   body: { type: String, required: true },
-  likes: { type: Number, required: true },
+  likes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
   hide: { type: Boolean, required: true },
 }, {
   timestamps: {

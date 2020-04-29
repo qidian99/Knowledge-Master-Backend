@@ -7,6 +7,6 @@ export interface PostDocument extends Document {
   block: string;
   title: string;
   body: string;
-  likes: Number;
+  likes: Array<string>;
   hide: Boolean;
 }

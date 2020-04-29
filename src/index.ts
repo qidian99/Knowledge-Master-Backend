@@ -63,11 +63,13 @@ const server = new ApolloServer({
     const tokenWithBearer = req.headers.authorization || '';
     const token = tokenWithBearer.split(' ')[1];
     const u = getUser(token);
-    // console.log('Header JWT:', u)
+    // console.log('Header JWT:', token)
     if (u) {
       const userObject = await User.findOne({
         openid: u.openid
       });
+      // console.log('Header UserObject:', userObject)
+
       if (userObject) {
         // console.log('Returned user context', userObject)
         return {
