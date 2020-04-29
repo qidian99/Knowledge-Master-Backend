@@ -52,13 +52,15 @@ export default {
       console.log('Creating a comment for post', post)
       const comment = await new Comment({
         post,
-        user: user._id,
+        user,
         topic: post.topic, 
         hide: false,
         block: 'default',
         body
       }).save();
 
+      post.comments.unshift(comment._id);
+      await post.save();
       console.log('Created', comment)
 
       return comment;

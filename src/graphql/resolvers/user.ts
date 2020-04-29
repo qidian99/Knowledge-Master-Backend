@@ -108,13 +108,21 @@ export default {
       args: any,
       context: any
     ): Promise<any> => {
-      const { openid, profile } = args;
+      console.log('Updating user profile:', context, args)
+
+      const { 
+        user: {
+          openid
+        }
+      } = context;
       // try to find the openid first
       const temp = await User.findOne({ openid });
+
+      console.log('Updating user profile:', temp)
       if (temp !== null) {
-        const keys = Object.keys(profile) as (keyof ProfileInput)[];
+        const keys = Object.keys(args) as (keyof ProfileInput)[];
         keys.forEach((key) => {
-          (temp[key] as string | number) = profile[key];
+          (temp[key] as string | number) = args[key];
         });
         await temp.save();
       } else {

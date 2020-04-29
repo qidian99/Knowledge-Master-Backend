@@ -67,11 +67,13 @@ const typedef = gql`
 
   extend type Mutation {
     registerOpenid(code: String!): LoginResponse!
-    updateUserProfile(openid: String!, profile: ProfileInput!): User!
     signup(input: SignupInput!): LoginResponse!
+    updateUserProfile(nickName: String!, province: String!, language: String!, gender: Int!, country: String!, city: String!, avatarUrl: String!): User!
     login(input: UserInput!): LoginResponse!
     deleteAllNonAdmin: Int!
   }
 `;
 
 export default typedef;
+
+//     updateUserProfile(openid: String!, profile: ProfileInput!): User!

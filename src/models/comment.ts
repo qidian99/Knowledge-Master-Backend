@@ -5,7 +5,7 @@ import * as bcrypt from 'bcryptjs';
 import { CommentDocument } from '../interfaces/CommentDocument';
 
 const commentSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true, autopopulate: true  },
   topic: { type: Schema.Types.ObjectId, ref: 'Topic', required: true },
   block: { type: String, required: true },
   repltyTo: { type: Schema.Types.ObjectId, ref: 'Comment', required: false },
