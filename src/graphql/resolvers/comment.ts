@@ -33,6 +33,24 @@ export default {
         .populate('post');
       // console.log(comments);
       return comments;
+    },
+    comment: async (parent: any, args: any, context: any): Promise<any> => {
+      const { commentId } = args;
+      // console.log(args);
+
+      if (!commentId) {
+        console.log('commentId is not provided');
+        throw new ApolloError('commentId is not provided');
+      }
+
+      // get the post
+      const comment = await Comment.findById(commentId);
+      if (!comment) {
+        console.log('comment cannot be found');
+        throw new ApolloError('comment cannot be found');
+      }
+
+      return comment;
     }
   },
   Mutation: {
@@ -84,6 +102,20 @@ export default {
       const delRes = await Comment.deleteMany({
         post: postId
       });
+      return delRes.deletedCount;
+    },
+    deleteComment: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
+      const user = checkUserContext(context);
+      const { commentId } = args;
+      const delRes = await Comment.deleteOne({
+        _id: commentId,
+        user: user._id
+      });
+      console.log(delRes);
       return delRes.deletedCount;
     }
   }

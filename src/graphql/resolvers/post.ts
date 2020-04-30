@@ -1,8 +1,10 @@
 import Post from '../../models/post';
-import Comment from '../../models/post';
+import Comment from '../../models/comment';
 import Topic from '../../models/topic';
 import { ApolloError } from 'apollo-server-errors';
 import { ObjectId } from 'mongodb';
+import { checkUserContext } from '../../util';
+import mongoose from 'mongoose';
 
 export default {
   Post: {
@@ -53,14 +55,14 @@ export default {
         //       "user": { "$arrayElemAt": [ "$user", 0 ] }
         //     }
         //   },
-        //   { $sort: { createdAt: -1 } }
+        //   { $sort: { updatedAt: -1 } }
         // ])
         // console.log('test', test[0].comments)
         // return test
 
         console.log('Find posts by topic ID:', topicId);
         const posts = await Post.find({ topic: topicId }, null, {
-          sort: { createdAt: -1 }
+          sort: { updatedAt: -1 }
         })
           // .populate('user')
           .populate({
@@ -88,7 +90,7 @@ export default {
         return posts;
       }
       // Must select a topic
-      // return Post.find({}, null, { sort: { createdAt: -1 } }).populate('user').populate('topic').populate('likes').populate('comments');
+      // return Post.find({}, null, { sort: { updatedAt: -1 } }).populate('user').populate('topic').populate('likes').populate('comments');
     },
     post: async (parent: any, args: any, context: any): Promise<any> => {
       const { postId } = args;
@@ -157,9 +159,35 @@ export default {
 
       return post;
     },
-    deleteAllPosts: async () => {
+    deleteAllPosts: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
       const deleteRes = await Post.deleteMany({});
       return deleteRes.deletedCount;
+    },
+    deletePost: async (parent: any, args: any, context: any): Promise<any> => {
+      const user = checkUserContext(context);
+      const { postId } = args;
+      const post = await Post.findOneAndDelete({
+        _id: postId,
+        user: user._id
+      });
+      if (!post) {
+        return null;
+      }
+      console.log('Deleted post', post);
+      const comments = post.comments;
+      console.log(
+        'Deleting comments',
+        comments.map((id) => mongoose.Types.ObjectId(id))
+      );
+      const delRes = await Comment.deleteMany({
+        _id: { $in: comments.map((id) => mongoose.Types.ObjectId(id)) }
+      });
+      console.log('Deleted comments count:', delRes.deletedCount);
+      return delRes.deletedCount;
     },
     likeAPost: async (parent: any, args: any, context: any): Promise<any> => {
       const { user } = context;

@@ -16,11 +16,13 @@ const typedef = gql`
 
   extend type Query {
     comments(postId: ID!): [Comment]
+    comment(commentId: ID!): Comment
   }
 
   extend type Mutation {
     createComment(postId: ID!, body: String!): Comment!
     deleteAllComments(postId: ID): Int!
+    deleteComment(commentId: ID): Int!
   }
 `;
 

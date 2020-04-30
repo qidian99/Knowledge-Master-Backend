@@ -23,6 +23,7 @@ const typedef = gql`
   extend type Mutation {
     createPost(topicId: ID!, title: String!, body: String!): Post!
     deleteAllPosts: Int!
+    deletePost(postId: ID!): Int!
     likeAPost(postId: ID!): [User]!
   }
 `;
