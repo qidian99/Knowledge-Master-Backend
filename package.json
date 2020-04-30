@@ -99,6 +99,7 @@
     "nodemailer": "^6.4.6",
     "passport": "^0.4.1",
     "pg": "^8.0.2",
+    "qcloud-cos-sts": "^3.0.2",
     "slugify": "^1.4.0",
     "twilio": "^3.42.2"
   }

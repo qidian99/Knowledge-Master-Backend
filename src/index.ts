@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable no-undef */
 require('dotenv').config();
 
@@ -20,6 +21,40 @@ import { getUser, injectAdminUser, injectTopics } from './util';
 import './wechat';
 const url = process.env.MONGO_DEV_URL || 'localhost:4002';
 
+// 临时密钥服务例子
+import bodyParser from 'body-parser';
+const STS = require('qcloud-cos-sts');
+import crypto from 'crypto';
+import pathLib from 'path';
+import fs from 'fs';
+
+// 配置参数
+const config = {
+  secretId: process.env.QCLOUD_SECRET_ID,
+  secretKey: process.env.QCLOUD_SECRET_KEY,
+  // proxy: process.env.Proxy,
+  proxy: '',
+  durationSeconds: 1800,
+  bucket: process.env.QCLOUD_BUCKET,
+  region: process.env.QCLOUD_REGION,
+  // 允许操作（上传）的对象前缀，可以根据自己网站的用户登录态判断允许上传的目录，例子： user1/* 或者 * 或者a.jpg
+  // 请注意当使用 * 时，可能存在安全风险，详情请参阅：https://cloud.tencent.com/document/product/436/40265
+  allowPrefix: '_ALLOW_DIR_/*',
+  // 密钥的权限列表
+  allowActions: [
+    // 所有 action 请看文档 https://cloud.tencent.com/document/product/436/31923
+    // 简单上传
+    'name/cos:PutObject',
+    'name/cos:PostObject',
+    // 分片上传
+    'name/cos:InitiateMultipartUpload',
+    'name/cos:ListMultipartUploads',
+    'name/cos:ListParts',
+    'name/cos:UploadPart',
+    'name/cos:CompleteMultipartUpload'
+  ]
+};
+
 const app = express();
 app.use(busboy());
 // app.use(express.static(join(__dirname, 'public')));
@@ -34,17 +69,89 @@ app.use(cors);
 
 app.use(errorHandler);
 
+// 格式一：临时密钥接口
+app.all('/sts', function (req, res, next) {
+  // TODO 这里根据自己业务需要做好放行判断
+  // if (config.allowPrefix === '_ALLOW_DIR_/*') {
+  //   res.send({ error: '请修改 allowPrefix 配置项，指定允许上传的路径前缀' });
+  //   return;
+  // }
+
+  if (!config.bucket) return;
+  // 获取临时密钥
+  const LongBucketName = config.bucket;
+  const ShortBucketName = LongBucketName.substr(
+    0,
+    LongBucketName.lastIndexOf('-')
+  );
+  const AppId = LongBucketName.substr(LongBucketName.lastIndexOf('-') + 1);
+  const policy = {
+    version: '2.0',
+    statement: [
+      {
+        action: config.allowActions,
+        effect: 'allow',
+        resource: [
+          'qcs::cos:' +
+            config.region +
+            ':uid/' +
+            AppId +
+            ':prefix//' +
+            AppId +
+            '/' +
+            ShortBucketName +
+            '/' +
+            config.allowPrefix
+        ]
+      }
+    ]
+  };
+  const startTime = Math.round(Date.now() / 1000);
+  STS.getCredential(
+    {
+      secretId: config.secretId,
+      secretKey: config.secretKey,
+      proxy: config.proxy,
+      region: config.region,
+      durationSeconds: config.durationSeconds,
+      policy: policy
+    },
+    function (err: any, tempKeys: any) {
+      if (tempKeys) tempKeys.startTime = startTime;
+      console.log(tempKeys);
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'origin,accept,content-type'
+      );
+      res.send(err || tempKeys);
+    }
+  );
+});
+
 app.route('/upload').post((req, res, next) => {
   let fstream;
+  if (!req.busboy) {
+    res.send({
+      status: 422,
+      message: 'No files are attached'
+    });
+    return;
+  }
   req.pipe(req.busboy);
   req.busboy.on('file', (fieldname, file, filename) => {
-    console.log(`Uploading: ${filename}`);
+    console.log(`Uploading: ${filename}`, file);
 
     // Path where image will be uploaded
     fstream = createWriteStream(`${__dirname}/files/${filename}`);
     file.pipe(fstream);
     fstream.on('close', () => {
       console.log(`Upload Finished of ${filename}`);
+      res.send({
+        status: 200,
+        message: 'Successfully uploaded file: ' + filename
+      });
       // TODO: enable this line when wired up with FE!
       // res.redirect('back');           //where to go next
     });
