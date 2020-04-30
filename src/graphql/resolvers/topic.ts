@@ -11,10 +11,16 @@ export default {
   },
   Query: {
     topics: async (parent: any, args: any, context: any): Promise<any> => {
-      return Topic.find({});
+      return Topic.find({}, null, {
+        sort: { updatedAt: -1 }
+      });
     }
   },
   Mutation: {
-    deleteAllTopics: async () => (await Topic.deleteMany({})).deletedCount
-  },
+    deleteAllTopics: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => (await Topic.deleteMany({})).deletedCount
+  }
 };

@@ -156,8 +156,8 @@ const server = new ApolloServer({
 
       async serverWillStart(): Promise<void> {
         console.log('Server starting!');
-        await injectAdminUser();
         await injectTopics();
+        await injectAdminUser();
       }
     }
   ]

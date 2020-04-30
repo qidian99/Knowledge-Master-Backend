@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user';
+import { Post } from '../models/post';
 import Topic from '../models/topic';
 import mongoose from 'mongoose';
 import { ApolloError } from 'apollo-server-errors';
@@ -17,25 +18,55 @@ export function getUser(token: string): any {
 
 export async function injectAdminUser(): Promise<void> {
   if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) return;
-  const username = process.env.ADMIN_USERNAME;
+  const email = process.env.ADMIN_USERNAME;
   const password = process.env.ADMIN_PASSWORD;
   const roles = ['admin'];
-  let admin = await User.findOne({ email: username });
+  let admin = await User.findOne({ email });
   if (admin) {
     admin.password = User.hashPassword(password);
     admin.roles = roles;
+    admin.username = '管理员';
     await admin.save();
   } else {
     admin = await new User({
-      email: username,
+      email,
+      username: '管理员',
       password: User.hashPassword(password),
       openid: '-1',
       roles
     }).save();
   }
+
+  // inject the post
+  const title = '新功能建议';
+  const body = '大家开一开脑洞，有什么好的想法可以分享下～';
+  const topic = await Topic.findOne({
+    name: '新功能'
+  });
+  const temp = await Post.findOne({
+    title,
+    body,
+    user: admin,
+    topic
+  });
+  console.log('finding new feature post', temp);
+  if (temp) {
+    await temp.save(); // up up
+  } else {
+    const post = new Post({
+      title,
+      body,
+      topic,
+      user: admin,
+      block: 'default',
+      hide: false,
+      likes: [],
+      comments: []
+    }).save();
+  }
 }
 
-const TOPIC_LIST = ['游戏', '生活', '学习', '动漫', '电影'];
+const TOPIC_LIST = ['游戏', '动漫', '电影', '学习', '生活', '新功能'];
 export async function injectTopics(): Promise<void> {
   const topics = await Topic.find({
     name: {

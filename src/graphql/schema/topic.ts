@@ -4,6 +4,8 @@ const typedef = gql`
   type Topic {
     topicId: ID!
     name: String!
+    createdAt: String
+    updatedAt: String
   }
 
   extend type Query {
