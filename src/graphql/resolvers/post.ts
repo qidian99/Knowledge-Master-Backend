@@ -92,6 +92,39 @@ export default {
       // Must select a topic
       // return Post.find({}, null, { sort: { updatedAt: -1 } }).populate('user').populate('topic').populate('likes').populate('comments');
     },
+    findUserPosts: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
+      const user = checkUserContext(context);
+      if (!user) return;
+      const posts = await Post.find({ user }, null, {
+        sort: { updatedAt: -1 }
+      })
+        .populate({
+          path: 'user',
+          populate: {
+            path: 'subscription',
+            model: 'Topic'
+          }
+        })
+        .populate('topic')
+        .populate('likes')
+        .populate({
+          path: 'comments',
+          populate: {
+            path: 'user',
+            model: 'User',
+            populate: {
+              path: 'subscription',
+              model: 'Topic'
+            }
+          }
+        });
+      console.log(posts);
+      return posts;
+    },
     post: async (parent: any, args: any, context: any): Promise<any> => {
       const { postId } = args;
 

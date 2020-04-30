@@ -18,6 +18,7 @@ const typedef = gql`
   extend type Query {
     posts(topicId: ID): [Post]
     post(postId: ID!): Post
+    findUserPosts: [Post]
   }
 
   extend type Mutation {
