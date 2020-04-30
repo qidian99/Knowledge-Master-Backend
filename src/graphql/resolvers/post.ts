@@ -184,7 +184,7 @@ export default {
         return id.toString() == userId;
       });
       if (index !== -1) {
-        post.likes.splice(index);
+        post.likes.splice(index, 1);
       } else {
         post.likes.unshift(userId);
       }
