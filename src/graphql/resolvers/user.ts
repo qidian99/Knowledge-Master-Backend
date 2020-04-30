@@ -9,6 +9,7 @@ import { User, UserInterface, UserModel } from '../../models/user';
 import { ProfileInput } from '../../interfaces/UserDocument';
 import { ApolloError } from 'apollo-server-errors';
 import Topic from '../../models/topic';
+import { checkUserContext, sendTemplateMessage } from '../../util';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -205,6 +206,20 @@ export default {
         };
       }
       return null;
+    },
+    sendTemplate: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
+      try {
+        const user = checkUserContext(context);
+        await sendTemplateMessage(user.openid);
+        // await sendTemplateMessage('otVZc5QIASQCvzmje10-fn2EBC50');
+        return true;
+      } catch (err) {
+        return false;
+      }
     }
   }
 };

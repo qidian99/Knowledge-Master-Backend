@@ -17,6 +17,7 @@ language: String
 nickName: String
 province: String
 subscription: Topic
+alert: String
 `;
 
 const typedef = gql`
@@ -75,6 +76,7 @@ const typedef = gql`
     deleteAllNonAdmin: Int!
     setUsername(username: String!): User!
     subscribeToTopic(topicId: ID!): User!
+    sendTemplate: Boolean!
   }
   
 `;

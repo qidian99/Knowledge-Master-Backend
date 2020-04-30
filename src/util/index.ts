@@ -4,6 +4,7 @@ import { Post } from '../models/post';
 import Topic from '../models/topic';
 import mongoose from 'mongoose';
 import { ApolloError } from 'apollo-server-errors';
+import wechatManager from '../wechat';
 
 export function getUser(token: string): any {
   try {
@@ -93,4 +94,9 @@ export function checkUserContext(context: any): any {
     throw new ApolloError('You are not authorized to create a post', '401');
   }
   return user;
+}
+
+export async function sendTemplateMessage(openid: string): Promise<any> {
+  await wechatManager.sendTemplate(openid);
+  return true;
 }

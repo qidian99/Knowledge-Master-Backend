@@ -17,7 +17,7 @@ import resolvers from './graphql/resolvers';
 import cors from './middlewares/cors';
 import errorHandler from './middlewares/errorHandler';
 import { getUser, injectAdminUser, injectTopics } from './util';
-
+import './wechat';
 const url = process.env.MONGO_DEV_URL || 'localhost:4002';
 
 const app = express();

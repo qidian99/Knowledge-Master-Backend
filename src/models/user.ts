@@ -18,7 +18,8 @@ const userSchema = new Schema({
   language: { type: String, required: false },
   nickName: { type: String, required: false },
   province: { type: String, required: false },
-  subscription: { type: Schema.Types.ObjectId, ref: 'Topic', required: false }
+  subscription: { type: Schema.Types.ObjectId, ref: 'Topic', required: false },
+  alert: { type: Schema.Types.ObjectId, ref: 'Post', required: false }
 });
 
 export interface UserInterface extends UserDocument {
