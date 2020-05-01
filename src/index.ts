@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable no-undef */
 require('dotenv').config();
-
 import express, { urlencoded, json } from 'express';
 import { model, connect } from 'mongoose';
 
@@ -33,19 +32,21 @@ const config = {
   secretId: process.env.QCLOUD_SECRET_ID,
   secretKey: process.env.QCLOUD_SECRET_KEY,
   // proxy: process.env.Proxy,
-  proxy: '',
+  // proxy: '',
+  proxy: null,
   durationSeconds: 1800,
   bucket: process.env.QCLOUD_BUCKET,
   region: process.env.QCLOUD_REGION,
   // 允许操作（上传）的对象前缀，可以根据自己网站的用户登录态判断允许上传的目录，例子： user1/* 或者 * 或者a.jpg
   // 请注意当使用 * 时，可能存在安全风险，详情请参阅：https://cloud.tencent.com/document/product/436/40265
-  allowPrefix: '_ALLOW_DIR_/*',
+  allowPrefix: 'km/*',
   // 密钥的权限列表
   allowActions: [
     // 所有 action 请看文档 https://cloud.tencent.com/document/product/436/31923
     // 简单上传
     'name/cos:PutObject',
     'name/cos:PostObject',
+    'name/cos:DeleteObject',
     // 分片上传
     'name/cos:InitiateMultipartUpload',
     'name/cos:ListMultipartUploads',

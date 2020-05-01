@@ -18,6 +18,7 @@ nickName: String
 province: String
 subscription: Topic
 alert: String
+gallery: [String]
 `;
 
 const typedef = gql`
@@ -77,6 +78,9 @@ const typedef = gql`
     setUsername(username: String!): User!
     subscribeToTopic(topicId: ID!): User!
     sendTemplate: Boolean!
+    addToGallery(filepath: String!): [String]!
+    deleteFromGallery(filepath: String!): [String]!
+    deleteGallery: [String]!
   }
   
 `;

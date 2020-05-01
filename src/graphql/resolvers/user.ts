@@ -34,7 +34,14 @@ export default {
       };
     },
     users: async (parent: any, args: any, context: any): Promise<any> =>
-      User.find({}).populate('subscription')
+      User.find({}).populate('subscription'),
+    currentUser: async (parent: any, args: any, context: any): Promise<any> => {
+      const user = checkUserContext(context);
+      if (!user) return;
+      const temp = await User.findById(user._id).populate('subscription');
+      console.log('current user', temp);
+      return temp;
+    }
   },
   Mutation: {
     deleteAllNonAdmin: async () => {
@@ -217,6 +224,67 @@ export default {
         await sendTemplateMessage(user.openid);
         // await sendTemplateMessage('otVZc5QIASQCvzmje10-fn2EBC50');
         return true;
+      } catch (err) {
+        return false;
+      }
+    },
+    addToGallery: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
+      try {
+        const user = checkUserContext(context);
+        const temp = await User.findById(user._id);
+        const { filepath } = args;
+        if (!temp) return null;
+        if (!temp.gallery) {
+          temp.gallery = [filepath];
+        } else {
+          temp.gallery.push(filepath);
+        }
+        await temp.save();
+        return temp.gallery;
+      } catch (err) {
+        return false;
+      }
+    },
+    deleteFromGallery: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
+      try {
+        const user = checkUserContext(context);
+        const temp = await User.findById(user._id);
+        const { filepath } = args;
+        if (!temp) return null;
+        if (!temp.gallery) {
+          temp.gallery = [];
+        } else {
+          const index = temp.gallery.findIndex((fp) => fp === filepath);
+          if (index !== -1) {
+            temp.gallery.splice(index, 1);
+          }
+        }
+        await temp.save();
+        return temp.gallery;
+      } catch (err) {
+        return false;
+      }
+    },
+    deleteGallery: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
+      try {
+        const user = checkUserContext(context);
+        const temp = await User.findById(user._id);
+        if (!temp) return null;
+        temp.gallery = [];
+        await temp.save();
+        return temp.gallery;
       } catch (err) {
         return false;
       }

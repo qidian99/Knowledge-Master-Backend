@@ -17,6 +17,7 @@ export interface UserDocument extends Document {
   province: string;
   subscription: any; // for assignment
   alert: any; // for template subscription
+  gallery: Array<string>;
 }
 
 export interface ProfileInput {
