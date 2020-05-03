@@ -13,6 +13,7 @@ const typedef = gql`
     comments: [Comment]!
     createdAt: String!
     updatedAt: String!
+    images: [String]
   }
 
   extend type Query {
@@ -22,7 +23,12 @@ const typedef = gql`
   }
 
   extend type Mutation {
-    createPost(topicId: ID!, title: String!, body: String!): Post!
+    createPost(
+      topicId: ID!
+      title: String!
+      body: String!
+      images: [String]
+    ): Post!
     deleteAllPosts: Int!
     deletePost(postId: ID!): Int!
     likeAPost(postId: ID!): [User]!

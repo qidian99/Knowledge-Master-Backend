@@ -164,7 +164,7 @@ export default {
         throw new ApolloError('You are not authorized to create a post', '401');
       }
 
-      const { topicId, title, body } = args;
+      const { topicId, title, body, images = [] } = args;
 
       // console.log(args)
 
@@ -185,7 +185,8 @@ export default {
         block: 'default',
         hide: false,
         likes: [],
-        comments: []
+        comments: [],
+        images
       }).save();
 
       console.log(post);
