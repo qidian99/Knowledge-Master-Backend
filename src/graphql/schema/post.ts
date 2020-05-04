@@ -29,6 +29,12 @@ const typedef = gql`
       body: String!
       images: [String]
     ): Post!
+    editPost(
+      postId: ID!
+      title: String
+      body: String
+      images: [String]
+    ): Post!
     deleteAllPosts: Int!
     deletePost(postId: ID!): Int!
     likeAPost(postId: ID!): [User]!

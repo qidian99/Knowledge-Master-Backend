@@ -193,6 +193,71 @@ export default {
 
       return post;
     },
+    editPost: async (parent: any, args: any, context: any): Promise<any> => {
+      const { user } = context;
+      if (!user) {
+        console.log('You are not authorized to create a post');
+        throw new ApolloError('You are not authorized to create a post', '401');
+      }
+
+      const { postId, title, body, images } = args;
+
+      // console.log(args)
+
+      // find topic
+      const post = await Post.findById(postId)
+        .populate({
+          path: 'user',
+          populate: {
+            path: 'subscription',
+            model: 'Topic'
+          }
+        })
+        .populate('topic')
+        .populate('likes')
+        // .populate('comments')
+        .populate({
+          path: 'comments',
+          populate: {
+            path: 'user',
+            model: 'User',
+            populate: {
+              path: 'subscription',
+              model: 'Topic'
+            }
+          }
+        });;
+
+      if (!post) {
+        console.log('Post not found');
+        throw new ApolloError('Post not found', '422');
+      }
+
+      console.log(post.user._id, user._id, post.user._id.toString() !== user._id.toString())
+      if (post.user._id.toString() !== user._id.toString()) {
+        console.log('You are not the author');
+        throw new ApolloError('Post author incorrect', '422');
+      }
+
+      console.log(args, user._id);
+      if (title) {
+        post.title = title
+      }
+
+      if (body) {
+        post.body = body
+      }
+
+      if (images) {
+        post.images = images
+      }
+
+      await post.save()
+
+      console.log('Post updated', post)
+
+      return post;
+    },
     deleteAllPosts: async (
       parent: any,
       args: any,
