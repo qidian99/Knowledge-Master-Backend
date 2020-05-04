@@ -249,6 +249,23 @@ export default {
         return false;
       }
     },
+    setUserGallery: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<any> => {
+      try {
+        const user = checkUserContext(context);
+        const temp = await User.findById(user._id);
+        const { files } = args;
+        if (!temp) return null;
+        temp.gallery = files;
+        await temp.save();
+        return temp.gallery;
+      } catch (err) {
+        return false;
+      }
+    },
     deleteFromGallery: async (
       parent: any,
       args: any,

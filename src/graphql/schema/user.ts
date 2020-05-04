@@ -79,6 +79,7 @@ const typedef = gql`
     subscribeToTopic(topicId: ID!): User!
     sendTemplate: Boolean!
     addToGallery(filepath: String!): [String]!
+    setUserGallery(files: [String]): [String]!
     deleteFromGallery(filepath: String!): [String]!
     deleteGallery: [String]!
   }

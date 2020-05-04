@@ -10,4 +10,5 @@ export interface PostDocument extends Document {
   likes: Array<string>;
   hide: Boolean;
   comments: Array<string>;
+  images: Array<string>;
 }

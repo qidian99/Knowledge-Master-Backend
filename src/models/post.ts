@@ -13,7 +13,8 @@ const postSchema = new Schema(
     body: { type: String, required: true },
     likes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     hide: { type: Boolean, required: true },
-    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment', required: false }]
+    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment', required: false }],
+    images: [{ type: String, required: false }]
   },
   {
     timestamps: {
