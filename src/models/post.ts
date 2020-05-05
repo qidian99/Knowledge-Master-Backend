@@ -1,7 +1,6 @@
 import mongoose, { model, Model } from 'mongoose';
 
 const { Schema } = mongoose;
-import * as bcrypt from 'bcryptjs';
 import { PostDocument } from '../interfaces/PostDocument';
 
 const postSchema = new Schema(

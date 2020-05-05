@@ -33,8 +33,10 @@ export default {
         message: 'Test GraphQL API for Wechat MP'
       };
     },
-    users: async (parent: any, args: any, context: any): Promise<any> =>
-      User.find({}).populate('subscription'),
+    users: async (parent: any, args: any, context: any): Promise<any> => {
+      // console.log("Test apollo context", context)
+      return  User.find({}).populate('subscription')
+    },
     currentUser: async (parent: any, args: any, context: any): Promise<any> => {
       const user = checkUserContext(context);
       if (!user) return;

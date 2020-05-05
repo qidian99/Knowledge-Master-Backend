@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../models/user';
 import { Post } from '../models/post';
 import Topic from '../models/topic';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { ApolloError } from 'apollo-server-errors';
 import wechatManager from '../wechat';
 
@@ -15,6 +15,10 @@ export function getUser(token: string): any {
   } catch (err) {
     return null;
   }
+}
+
+export const getUserModel = (id: Types.ObjectId) => {
+  return User;
 }
 
 export async function injectAdminUser(): Promise<void> {

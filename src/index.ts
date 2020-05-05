@@ -2,6 +2,7 @@
 /* eslint-disable no-undef */
 require('dotenv').config();
 import express, { urlencoded, json } from 'express';
+const http = require('http');
 import { model, connect } from 'mongoose';
 
 import { ApolloServer } from 'apollo-server-express';
@@ -94,15 +95,15 @@ app.all('/sts', function (req, res, next) {
         effect: 'allow',
         resource: [
           'qcs::cos:' +
-            config.region +
-            ':uid/' +
-            AppId +
-            ':prefix//' +
-            AppId +
-            '/' +
-            ShortBucketName +
-            '/' +
-            config.allowPrefix
+          config.region +
+          ':uid/' +
+          AppId +
+          ':prefix//' +
+          AppId +
+          '/' +
+          ShortBucketName +
+          '/' +
+          config.allowPrefix
         ]
       }
     ]
@@ -163,67 +164,107 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: async ({
-    req
-  }): Promise<{
-    // user?: { email: string; id: string; roles: Array<string> };
-    user?: any;
-  }> => {
-    // console.log('Header JWT:', req.headers.authorizationoken);
-    const tokenWithBearer = req.headers.authorization || '';
-    const splittedToken = tokenWithBearer.split(' ');
-    // console.log('Header JWT:', splittedToken);
-    if (splittedToken.length <= 1) {
-      return {
-        user: null
-      };
-    }
-    const token = splittedToken[1];
-    const u = getUser(token);
-    // console.log('returned jwt decode', u);
-    if (!u) {
-      return {
-        user: null
-      };
-    }
-    if (u) {
-      let userObject;
-      if (u.email) {
-        userObject = await User.findOne()
-          .or([{ openid: u.openid }, { email: u.email }])
-          .populate('subscription');
-      } else {
-        userObject = await User.findOne({
-          openid: u.openid
-        }).populate('subscription');
-      }
-      // return many null
-      // const userObject = await User.find()
-      //   .or([{ openid: u.openid }, { email: u.email }])
-      //   .populate('subscription');
-
-      if (userObject) {
-        // console.log('Returned user context', userObject);
+    req,
+    connection
+  }): Promise<any> => {
+    if (connection) {
+      return connection.context;
+    } else {
+      // console.log('Header JWT:', req.headers.authorizationoken);
+      const tokenWithBearer = req.headers.authorization || '';
+      const splittedToken = tokenWithBearer.split(' ');
+      // console.log('Header JWT:', splittedToken);
+      if (splittedToken.length <= 1) {
         return {
-          user: userObject
-          // : {
-          //   email: userObject.email,
-          //   id: userObject._id,
-          //   openid: userObject.openid,
-          //   roles: userObject.roles
-          // }
+          user: null
+        };
+      }
+      const token = splittedToken[1];
+      const u = getUser(token);
+      // console.log('returned jwt decode', u);
+      if (!u) {
+        return {
+          user: null
+        };
+      }
+      if (u) {
+        let userObject;
+        if (u.email) {
+          userObject = await User.findOne()
+            .or([{ openid: u.openid }, { email: u.email }])
+            .populate('subscription');
+        } else {
+          userObject = await User.findOne({
+            openid: u.openid
+          }).populate('subscription');
+        }
+        // return many null
+        // const userObject = await User.find()
+        //   .or([{ openid: u.openid }, { email: u.email }])
+        //   .populate('subscription');
+
+        if (userObject) {
+          // console.log('Returned user context', userObject);
+          return {
+            user: userObject
+            // : {
+            //   email: userObject.email,
+            //   id: userObject._id,
+            //   openid: userObject.openid,
+            //   roles: userObject.roles
+            // }
+          };
+        }
+        return {
+          user: null
         };
       }
       return {
         user: null
       };
     }
-    return {
-      user: null
-    };
   },
   formatError: (err): any => {
     console.log(err);
     return new Error(err.message);
+  },
+  subscriptions: {
+    onConnect: async (connectionParams: any, webSockets: any): Promise<any> => {
+      const { token } = connectionParams;
+      console.log('Subscription open with params', connectionParams)
+      if (token) {
+        const u = getUser(token);
+        if (!u) {
+          return {
+            user: null
+          };
+        }
+        if (u) {
+          let userObject;
+          if (u.email) {
+            userObject = await User.findOne()
+              .or([{ openid: u.openid }, { email: u.email }])
+              .populate('subscription');
+          } else {
+            userObject = await User.findOne({
+              openid: u.openid
+            }).populate('subscription');
+          }
+          if (userObject) {
+            return {
+              user: userObject
+            };
+          }
+          return {
+            user: null
+          };
+        }
+        return {
+          user: null
+        };
+      }
+      throw new Error('Missing auth token!');
+    },
   },
   plugins: [
     {
@@ -231,34 +272,27 @@ const server = new ApolloServer({
         // console.log('request started!');
 
         return {
-          didEncounterErrors(context: any): Error {
-            // console.log(context)
-            const { response, errors } = context;
-            let msg;
-            if (
-              errors.find((err: any) => {
-                const unauthorized =
-                  err.originalError instanceof AuthenticationError;
-                if (unauthorized) msg = err.message;
-                return unauthorized;
-              })
-            ) {
-              // response.data = undefined
-              // console.log('status', response.http)
-              if (response && response.http) {
-                response.http.status = 401;
-              }
-              throw new Error(msg);
-              // response.http.headers.set('Has-Errors', '1');
-              // console.log(response, errors)
-            } else {
-              throw new Error('Unknown error');
-            }
-          },
-
-          willSendResponse(context: any): any {
-            // console.log('will send response', context);
-          }
+          // didEncounterErrors(context: any): Error {
+          //   const { response, errors } = context;
+          //   let msg;
+          //   if (
+          //     errors.find((err: any) => {
+          //       const unauthorized =
+          //         err.originalError instanceof AuthenticationError;
+          //       if (unauthorized) msg = err.message;
+          //       return unauthorized;
+          //     })
+          //   ) {
+          //     if (response && response.http) {
+          //       response.http.status = 401;
+          //     }
+          //     throw new Error(msg);
+          //   } else {
+          //     throw new Error('Unknown error');
+          //   }
+          // },
+          // willSendResponse(context: any): any {
+          // }
         };
       },
 
@@ -275,16 +309,17 @@ server.applyMiddleware({
   app
 });
 
-const port = process.env.PORT || 4002;
 
-app.listen(
-  {
-    port
-  },
-  () =>
-    console.log(
-      `🚀 Server ready at http://localhost:${port}${server.graphqlPath}`
-    )
+const httpServer = http.createServer(app);
+server.installSubscriptionHandlers(httpServer);
+
+const PORT = process.env.PORT || 4002;
+
+httpServer.listen(PORT,
+  () => {
+    console.log(`🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`)
+    console.log(`🚀 Subscriptions ready at ws://localhost:${PORT}${server.subscriptionsPath}`)
+  }
 );
 
 connect(url, {

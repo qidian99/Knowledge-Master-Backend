@@ -2,13 +2,22 @@ import Post from '../../models/post';
 import Comment from '../../models/comment';
 import Topic from '../../models/topic';
 import { ApolloError } from 'apollo-server-errors';
-import { ObjectId } from 'mongodb';
 import { checkUserContext } from '../../util';
 import mongoose from 'mongoose';
+import pubsub from '../../util/pubsub';
+import { PostDocument } from '../../interfaces/PostDocument';
+import errMsg from '../util/errorMessage'
+const POST_ADDED = 'POST_ADDED';
 
 export default {
   Post: {
     postId: async (parent: any): Promise<any> => parent._id
+  },
+  Subscription: {
+    postAdded: {
+      // Additional event labels can be passed to asyncIterator creation
+      subscribe: () => pubsub.asyncIterator([POST_ADDED]),
+    },
   },
   Query: {
     posts: async (parent: any, args: any, context: any): Promise<any> => {
@@ -64,7 +73,6 @@ export default {
         const posts = await Post.find({ topic: topicId }, null, {
           sort: { updatedAt: -1 }
         })
-          // .populate('user')
           .populate({
             path: 'user',
             populate: {
@@ -74,7 +82,6 @@ export default {
           })
           .populate('topic')
           .populate('likes')
-          // .populate('comments')
           .populate({
             path: 'comments',
             populate: {
@@ -89,8 +96,6 @@ export default {
         console.log(posts);
         return posts;
       }
-      // Must select a topic
-      // return Post.find({}, null, { sort: { updatedAt: -1 } }).populate('user').populate('topic').populate('likes').populate('comments');
     },
     findUserPosts: async (
       parent: any,
@@ -98,7 +103,9 @@ export default {
       context: any
     ): Promise<any> => {
       const user = checkUserContext(context);
-      if (!user) return;
+      if (!user) {
+        throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
+      };
       const posts = await Post.find({ user }, null, {
         sort: { updatedAt: -1 }
       })
@@ -157,12 +164,11 @@ export default {
     }
   },
   Mutation: {
-    createPost: async (parent: any, args: any, context: any): Promise<any> => {
-      const { user } = context;
+    createPost: async (parent: any, args: any, context: any): Promise<PostDocument> => {
+      const user = checkUserContext(context);
       if (!user) {
-        console.log('You are not authorized to create a post');
-        throw new ApolloError('You are not authorized to create a post', '401');
-      }
+        throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
+      };
 
       const { topicId, title, body, images = [] } = args;
 
@@ -190,19 +196,17 @@ export default {
       }).save();
 
       console.log(post);
+      pubsub.publish(POST_ADDED, { postAdded: post });
 
       return post;
     },
-    editPost: async (parent: any, args: any, context: any): Promise<any> => {
-      const { user } = context;
+    editPost: async (parent: any, args: any, context: any): Promise<PostDocument> => {
+      const user = checkUserContext(context);
       if (!user) {
-        console.log('You are not authorized to create a post');
-        throw new ApolloError('You are not authorized to create a post', '401');
-      }
+        throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
+      };
 
       const { postId, title, body, images } = args;
-
-      // console.log(args)
 
       // find topic
       const post = await Post.findById(postId)
@@ -215,7 +219,6 @@ export default {
         })
         .populate('topic')
         .populate('likes')
-        // .populate('comments')
         .populate({
           path: 'comments',
           populate: {
@@ -262,11 +265,11 @@ export default {
       parent: any,
       args: any,
       context: any
-    ): Promise<any> => {
+    ): Promise<Number> => {
       const deleteRes = await Post.deleteMany({});
-      return deleteRes.deletedCount;
+      return deleteRes.deletedCount as Number;
     },
-    deletePost: async (parent: any, args: any, context: any): Promise<any> => {
+    deletePost: async (parent: any, args: any, context: any): Promise<Number> => {
       const user = checkUserContext(context);
       const { postId } = args;
       const post = await Post.findOneAndDelete({
@@ -274,7 +277,7 @@ export default {
         user: user._id
       });
       if (!post) {
-        return null;
+        throw new ApolloError("Post does not exist")
       }
       console.log('Deleted post', post);
       const comments = post.comments;
@@ -286,22 +289,20 @@ export default {
         _id: { $in: comments.map((id) => mongoose.Types.ObjectId(id)) }
       });
       console.log('Deleted comments count:', delRes.deletedCount);
-      return delRes.deletedCount;
+      return delRes.deletedCount as Number;
     },
-    likeAPost: async (parent: any, args: any, context: any): Promise<any> => {
-      const { user } = context;
+    likeAPost: async (parent: any, args: any, context: any): Promise<Array<string>> => {
+      const user = checkUserContext(context);
       if (!user) {
-        console.log('You are not authorized to create a post');
-        throw new ApolloError('You are not authorized to create a post', '401');
-      }
+        throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
+      };
 
       const { postId } = args;
 
       const post = await Post.findById(postId);
 
       if (!post) {
-        console.log('Post does not exist');
-        throw new ApolloError('Post does not exist', '422');
+        throw new ApolloError(...errMsg.POST_FIND_ERR);
       }
 
       const userId = user._id;
@@ -316,7 +317,6 @@ export default {
         post.likes.unshift(userId);
       }
       await post.save();
-      console.log(post.likes);
 
       return post.likes;
     }

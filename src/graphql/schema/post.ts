@@ -1,6 +1,11 @@
 import { gql } from 'apollo-server-express';
 
 const typedef = gql`
+
+  extend type Subscription {
+    postAdded: Post
+  }
+
   type Post {
     postId: ID!
     user: User!
