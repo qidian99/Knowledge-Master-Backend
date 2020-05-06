@@ -37,6 +37,12 @@ export default {
       // console.log("Test apollo context", context)
       return  User.find({}).populate('subscription')
     },
+    user: async (parent: any, args: any, context: any): Promise<any> => {
+      const {
+        userId
+      } = args;
+      return  User.findById(userId).populate('subscription')
+    },
     currentUser: async (parent: any, args: any, context: any): Promise<any> => {
       const user = checkUserContext(context);
       if (!user) return;

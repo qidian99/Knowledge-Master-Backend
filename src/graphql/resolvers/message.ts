@@ -31,7 +31,7 @@ export default {
     },
   },
   Mutation: {
-    deleteAllMessages : async (parent: any, args: any, context: any): Promise<any> => {
+    deleteAllMessages: async (parent: any, args: any, context: any): Promise<any> => {
       const delRes = await Message.deleteMany({});
       const delRes2 = await Room.deleteMany({});
       console.log("Messages deleted", delRes, "Rooms deleted", delRes2)
@@ -43,12 +43,20 @@ export default {
         throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
       };
 
+      const { receiverId: rid, content } = args;
       const senderId = Types.ObjectId(user._id);
+      const receiverId = Types.ObjectId(rid);
 
-      const { receiverId, content } = args;
       let room = await Room.findOne({
-        chatterIds: { $all: [senderId, receiverId] },
+        // chatterIds: { $all: [senderId, receiverId] },
+        $or: [
+          { chatterIds: [senderId, receiverId] },
+          { chatterIds: [receiverId, senderId] },
+        ]
       });
+
+      console.log("found room", room, senderId, receiverId);
+
       if (!room) {
         room = await new Room({
           chatterIds: [senderId, receiverId],
@@ -87,12 +95,13 @@ export default {
       }).sort({ createdAt: -1 });
       return messages;
     },
-    messageList:  async (parent: any, args: any, context: any): Promise<any> => {
+    messageList: async (parent: any, args: any, context: any): Promise<any> => {
       const user = checkUserContext(context);
       if (!user) {
         throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
       };
-      const rooms = await Room.find({ chatterIds: { $all: [user._id] } })
+      const userId = Types.ObjectId(user._id)
+      const rooms = await Room.find({ chatterIds: { $in: [userId] } })
       console.log('Found rooms', rooms)
       const msgList = await rooms.reduce(async (res: any, curr: any, index, arr) => {
         const msg = (
@@ -133,7 +142,7 @@ export default {
         },
         (payload, args, context) => {
           console.log(context, payload.newMessage);
-          return payload.newMessage.receiverId.equals(context.user._id);
+          return payload.newMessage.receiverId.equals(context.user._id) || payload.newMessage.senderId.equals(context.user._id);
         }
       ),
     },
