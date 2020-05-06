@@ -17,6 +17,7 @@ const typedef = gql`
 			receiverId: ID!
 			content: String!
 		):Message!
+		deleteAllMessages: Int
 	}
 
 	extend type Query {

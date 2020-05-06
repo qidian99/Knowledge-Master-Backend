@@ -18,10 +18,13 @@ const userSchema = new Schema({
   language: { type: String, required: false },
   nickName: { type: String, required: false },
   province: { type: String, required: false },
-  subscription: { type: Schema.Types.ObjectId, ref: 'Topic', required: false },
+  subscription: { type: Schema.Types.ObjectId, ref: 'Topic', required: false, autopopulate: true },
   alert: { type: Schema.Types.ObjectId, ref: 'Post', required: false },
   gallery: [{ type: String, required: false }]
 });
+
+userSchema.plugin(require('mongoose-autopopulate'));
+
 
 export interface UserInterface extends UserDocument {
   _doc: any;

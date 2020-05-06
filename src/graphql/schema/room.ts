@@ -7,6 +7,10 @@ const typedef = gql`
 		chatterTwo: UserType!
 		message: Message
 	}
+
+	extend type Query {
+		rooms: [Room]
+	}
 `
 
 export default typedef

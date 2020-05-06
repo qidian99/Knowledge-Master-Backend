@@ -5,6 +5,8 @@ import Topic from '../models/topic';
 import mongoose, { Types } from 'mongoose';
 import { ApolloError } from 'apollo-server-errors';
 import wechatManager from '../wechat';
+import errMsg from '../graphql/util/errorMessage'
+
 
 export function getUser(token: string): any {
   try {
@@ -94,8 +96,7 @@ export async function injectTopics(): Promise<void> {
 export function checkUserContext(context: any): any {
   const { user } = context;
   if (!user) {
-    console.log('You are not authorized to create a post');
-    throw new ApolloError('You are not authorized to create a post', '401');
+    throw new ApolloError(...errMsg.USER_CONTEXT_ERR);
   }
   return user;
 }

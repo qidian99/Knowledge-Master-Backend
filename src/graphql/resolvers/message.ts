@@ -1,7 +1,7 @@
 import { ApolloError } from 'apollo-server-errors';
 import { withFilter } from 'graphql-subscriptions';
 const _ = require("lodash");
-
+import { Types } from 'mongoose'
 const { getUserModel } = require('../../util');
 import errMsg from '../util/errorMessage';
 import Room from '../../models/room';
@@ -31,13 +31,19 @@ export default {
     },
   },
   Mutation: {
+    deleteAllMessages : async (parent: any, args: any, context: any): Promise<any> => {
+      const delRes = await Message.deleteMany({});
+      const delRes2 = await Room.deleteMany({});
+      console.log("Messages deleted", delRes, "Rooms deleted", delRes2)
+      return delRes.deletedCount as Number;
+    },
     newMessage: async (parent: any, args: any, context: any): Promise<any> => {
       const user = checkUserContext(context);
       if (!user) {
         throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
       };
 
-      const senderId = user._id;
+      const senderId = Types.ObjectId(user._id);
 
       const { receiverId, content } = args;
       let room = await Room.findOne({
@@ -58,6 +64,7 @@ export default {
         receiverId,
         content,
       }).save();
+
       if (!newMsg) {
         throw new ApolloError(...errMsg.MSG_CREATION_ERR);
       }
@@ -85,7 +92,7 @@ export default {
       if (!user) {
         throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
       };
-      const rooms = await Room.find({ chatterIds: { $in: [user._id] } })
+      const rooms = await Room.find({ chatterIds: { $all: [user._id] } })
       console.log('Found rooms', rooms)
       const msgList = await rooms.reduce(async (res: any, curr: any, index, arr) => {
         const msg = (
@@ -120,7 +127,10 @@ export default {
         return payload.newMessage;
       },
       subscribe: withFilter(
-        (root, args, context, info) => pubsub.asyncIterator(CHAT_CHANNEL),
+        (root, args, context, info) => {
+          console.log("User subscribing to new messages:", context)
+          return pubsub.asyncIterator(CHAT_CHANNEL)
+        },
         (payload, args, context) => {
           console.log(context, payload.newMessage);
           return payload.newMessage.receiverId.equals(context.user._id);
