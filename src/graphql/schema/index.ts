@@ -20,10 +20,10 @@ const rootSchema = gql`
   }
 `;
 export default [
-  rootSchema, 
-  userSchema, 
-  topicSchema, 
-  postSchema, 
+  rootSchema,
+  userSchema,
+  topicSchema,
+  postSchema,
   commentSchema,
   roomSchema,
   messageSchema

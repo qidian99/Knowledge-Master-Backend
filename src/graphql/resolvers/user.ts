@@ -4,7 +4,6 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
-import { ObjectScalarType } from '../schema/ObjectScalarType';
 import { User, UserInterface, UserModel } from '../../models/user';
 import { ProfileInput } from '../../interfaces/UserDocument';
 import { ApolloError } from 'apollo-server-errors';
@@ -20,7 +19,6 @@ const transporter = nodemailer.createTransport({
 });
 
 export default {
-  ObjectScalarType,
   User: {
     userId: async (parent: any): Promise<any> => parent._id
   },

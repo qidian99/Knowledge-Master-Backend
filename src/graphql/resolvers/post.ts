@@ -6,7 +6,7 @@ import { checkUserContext } from '../../util';
 import mongoose from 'mongoose';
 import pubsub from '../../util/pubsub';
 import { PostDocument } from '../../interfaces/PostDocument';
-import errMsg from '../util/errorMessage'
+import errMsg from '../util/errorMessage';
 const POST_ADDED = 'POST_ADDED';
 
 export default {
@@ -16,8 +16,8 @@ export default {
   Subscription: {
     postAdded: {
       // Additional event labels can be passed to asyncIterator creation
-      subscribe: () => pubsub.asyncIterator([POST_ADDED]),
-    },
+      subscribe: () => pubsub.asyncIterator([POST_ADDED])
+    }
   },
   Query: {
     posts: async (parent: any, args: any, context: any): Promise<any> => {
@@ -104,8 +104,8 @@ export default {
     ): Promise<any> => {
       const user = checkUserContext(context);
       if (!user) {
-        throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
-      };
+        throw new ApolloError(...errMsg.USER_CONTEXT_ERR);
+      }
       const posts = await Post.find({ user }, null, {
         sort: { updatedAt: -1 }
       })
@@ -164,11 +164,15 @@ export default {
     }
   },
   Mutation: {
-    createPost: async (parent: any, args: any, context: any): Promise<PostDocument> => {
+    createPost: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<PostDocument> => {
       const user = checkUserContext(context);
       if (!user) {
-        throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
-      };
+        throw new ApolloError(...errMsg.USER_CONTEXT_ERR);
+      }
 
       const { topicId, title, body, images = [] } = args;
 
@@ -200,11 +204,15 @@ export default {
 
       return post;
     },
-    editPost: async (parent: any, args: any, context: any): Promise<PostDocument> => {
+    editPost: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<PostDocument> => {
       const user = checkUserContext(context);
       if (!user) {
-        throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
-      };
+        throw new ApolloError(...errMsg.USER_CONTEXT_ERR);
+      }
 
       const { postId, title, body, images } = args;
 
@@ -229,14 +237,18 @@ export default {
               model: 'Topic'
             }
           }
-        });;
+        });
 
       if (!post) {
         console.log('Post not found');
         throw new ApolloError('Post not found', '422');
       }
 
-      console.log(post.user._id, user._id, post.user._id.toString() !== user._id.toString())
+      console.log(
+        post.user._id,
+        user._id,
+        post.user._id.toString() !== user._id.toString()
+      );
       if (post.user._id.toString() !== user._id.toString()) {
         console.log('You are not the author');
         throw new ApolloError('Post author incorrect', '422');
@@ -244,20 +256,20 @@ export default {
 
       console.log(args, user._id);
       if (title) {
-        post.title = title
+        post.title = title;
       }
 
       if (body) {
-        post.body = body
+        post.body = body;
       }
 
       if (images) {
-        post.images = images
+        post.images = images;
       }
 
-      await post.save()
+      await post.save();
 
-      console.log('Post updated', post)
+      console.log('Post updated', post);
 
       return post;
     },
@@ -265,11 +277,15 @@ export default {
       parent: any,
       args: any,
       context: any
-    ): Promise<Number> => {
+    ): Promise<number> => {
       const deleteRes = await Post.deleteMany({});
-      return deleteRes.deletedCount as Number;
+      return deleteRes.deletedCount as number;
     },
-    deletePost: async (parent: any, args: any, context: any): Promise<Number> => {
+    deletePost: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<number> => {
       const user = checkUserContext(context);
       const { postId } = args;
       const post = await Post.findOneAndDelete({
@@ -277,7 +293,7 @@ export default {
         user: user._id
       });
       if (!post) {
-        throw new ApolloError("Post does not exist")
+        throw new ApolloError('Post does not exist');
       }
       console.log('Deleted post', post);
       const comments = post.comments;
@@ -289,13 +305,17 @@ export default {
         _id: { $in: comments.map((id) => mongoose.Types.ObjectId(id)) }
       });
       console.log('Deleted comments count:', delRes.deletedCount);
-      return delRes.deletedCount as Number;
+      return delRes.deletedCount as number;
     },
-    likeAPost: async (parent: any, args: any, context: any): Promise<Array<string>> => {
+    likeAPost: async (
+      parent: any,
+      args: any,
+      context: any
+    ): Promise<Array<string>> => {
       const user = checkUserContext(context);
       if (!user) {
-        throw new ApolloError(...errMsg.USER_CONTEXT_ERR)
-      };
+        throw new ApolloError(...errMsg.USER_CONTEXT_ERR);
+      }
 
       const { postId } = args;
 

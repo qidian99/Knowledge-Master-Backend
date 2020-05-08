@@ -1,6 +1,6 @@
 require('dotenv').config();
 import fetch, { Headers, RequestInit } from 'node-fetch';
-import { ObjectScalarType } from '../schema/ObjectScalarType';
+import { ObjectScalarType } from '../util/ObjectScalarType';
 import Topic from '../../models/topic';
 import { ProfileInput } from '../../interfaces/UserDocument';
 import { ApolloError } from 'apollo-server-errors';
